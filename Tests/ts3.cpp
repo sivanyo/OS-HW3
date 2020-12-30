@@ -1,6 +1,6 @@
 // Threads & Synchronization
 #include <pthread.h>
-#include "../Code_Skeleton/Part1/PCQueue.cpp"
+#include "../Code_Skeleton/Part1/PCQueue.hpp"
 
 #define MAX_THREAD 100
 #define MAX_THREAD_EXTRA 1000

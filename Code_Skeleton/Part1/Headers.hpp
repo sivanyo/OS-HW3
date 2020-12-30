@@ -43,6 +43,7 @@ using std::endl;
 
 typedef unsigned int uint;
 typedef vector<vector<bool>> bool_mat;
+typedef vector<vector<int>> field_mat;
 
 /*--------------------------------------------------------------------------------
 								  Defines & Macros

@@ -1,6 +1,6 @@
 #ifndef __THREAD_H
 #define __THREAD_H
-#include "Headers.hpp"
+#include "../Part1/Headers.hpp"
 class Thread
 {
 public:
@@ -28,7 +28,7 @@ public:
 protected:
 	/** Implement this method in your subclass with the code you want your thread to run. */
 	virtual void thread_workload() = 0;
-	uint thread_id; // A number from 0 -> Number of threads initialized, providing a simple numbering for you to use
+	uint i_thread_id; // A number from 0 -> Number of threads initialized, providing a simple numbering for you to use
 
 private:
 	static void * entry_func(void * thread) { ((Thread *)thread)->thread_workload(); return NULL; }
