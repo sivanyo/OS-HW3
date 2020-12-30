@@ -1,6 +1,6 @@
 // Threads & Synchronization
 #include <pthread.h>
-#include "../Code_Skeleton/Part1/PCQueue.cpp"
+#include "../Code_Skeleton/Part1/PCQueue.hpp"
 
 #define MAX_THREAD 100
 #define MAX_THREAD_EXTRA 5000
@@ -55,7 +55,9 @@ int main(){
     pthread_create(&tg1, nullptr, push, &y1);
     sleep(2);
     pthread_create(&tg1, nullptr, push, &y2);
-    sleep(2);
+    sleep(5);
+    std::cout << "x1 is: " << x1 << std::endl;
+    std::cout << "x2 is: " << x2 << std::endl;
     assert(x1 == 1);
     assert(x2 == 2);
 

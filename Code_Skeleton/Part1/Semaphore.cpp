@@ -5,7 +5,7 @@
 #include "Semaphore.hpp"
 
 // Constructs a new semaphore with a counter of 0
-Semaphore::Semaphore(): counter(0) {
+Semaphore::Semaphore() : counter(0) {
     pthread_mutexattr_t attribute;
     pthread_mutexattr_init(&attribute);
     pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
@@ -14,7 +14,7 @@ Semaphore::Semaphore(): counter(0) {
 }
 
 // Constructs a new semaphore with a counter of val
-Semaphore::Semaphore(unsigned val): counter(val) {
+Semaphore::Semaphore(unsigned val) : counter(val) {
     pthread_mutexattr_t attribute;
     pthread_mutexattr_init(&attribute);
     pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
@@ -41,9 +41,14 @@ void Semaphore::down() {
         // wait until a thread is available, the wait will stop by sending a signal to cond
         pthread_cond_wait(&cond, &mutex);
     }
-    // thread has become available, need to use a thread, and take out a request from the wait queue
+    // thread has become available, need to use a thread, and take out a request from the wait itemQueue
     // now we have the lock, so we can change counter
     counter--;
     // we have finished the critical section, so we unlock the mutex
     pthread_mutex_unlock(&mutex);
+}
+
+Semaphore::~Semaphore() {
+    pthread_cond_destroy(&cond);
+    pthread_mutex_destroy(&mutex);
 }

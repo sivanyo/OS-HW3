@@ -9,6 +9,8 @@ public:
     // Constructs a new semaphore with a counter of 0
     Semaphore();
 
+    ~Semaphore();
+
     // Constructs a new semaphore with a counter of val
     explicit Semaphore(unsigned val);
 
