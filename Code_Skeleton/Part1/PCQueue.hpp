@@ -18,7 +18,7 @@ public:
 
 
 private:
-	// Add your class memebers here
+	// Add your class members here
 };
 // Recommendation: Use the implementation of the std::queue for this exercise
 #endif
