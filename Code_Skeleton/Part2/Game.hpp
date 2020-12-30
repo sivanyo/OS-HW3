@@ -28,6 +28,11 @@ struct game_params {
 	bool interactive_on; 
 	bool print_on; 
 };
+
+struct neighboors {
+    int numAlive;
+    vector<int> neighborConc;
+};
 /*--------------------------------------------------------------------------------
 									Class Declaration
 --------------------------------------------------------------------------------*/
@@ -72,5 +77,10 @@ protected: // All members here are protected, instead of private for testing pur
 	uint width;
 
     static void _print_internal(field_mat current);
+    static bool is_legal_neighbor(int i, int j, int height, int width);
+
+    static neighboors calculate_neighbors(field_mat field, int i, int j);
+
+    static int find_dominant_species(neighboors env);
 };
 #endif

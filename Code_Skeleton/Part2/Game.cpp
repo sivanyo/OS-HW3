@@ -68,6 +68,48 @@ void Game::_step(uint curr_gen) {
     // Push jobs to queue
     // Wait for the workers to finish calculating
     // Swap pointers between current and next field
+    // iterate over the current field, and update the values in the next field
+
+}
+
+neighboors Game::calculate_neighbors(field_mat field, int i, int j) {
+    int height = field.size();
+    int width = field[0].size();
+    neighboors env;
+    for (int k = 0; k < 7; ++k) {
+        env.neighborConc.push_back(0);
+    }
+    for (int k = i - 1; k <= i + 1; ++k) {
+        for (int l = j - 1; l <= j + 1; ++l) {
+            if (k == i && l == j) {
+                continue;
+            }
+            if (is_legal_neighbor(k, l, height, width) && field[k][l] != 0) {
+                env.numAlive++;
+                env.neighborConc[field[k][l] % 7]++;
+            }
+        }
+    }
+    return env;
+}
+
+// This function will return the index of the most dominant species in the
+// neighborhood
+int Game::find_dominant_species(neighboors env) {
+    int maxIndex = 0;
+    int maxVal = 0;
+
+    for (int i = 0; i < env.neighborConc.size(); ++i) {
+        int tempVal = env.neighborConc[i] * i + 1;
+        if (tempVal > maxVal) {
+            maxIndex = i;
+        }
+    }
+    return maxIndex;
+}
+
+bool Game::is_legal_neighbor(int i, int j, int height, int width) {
+    return i >= 0 && i < height && j >= 0 && j < width;
 }
 
 void Game::_destroy_game() {
@@ -145,7 +187,7 @@ const vector<float> Game::tile_hist() const {
 			cout << u8"║" << endl;
 		}
 		cout << u8"╚" << string(u8"═") * field_width << u8"╝" << endl;
-*/ 
+*/
 
 
 
