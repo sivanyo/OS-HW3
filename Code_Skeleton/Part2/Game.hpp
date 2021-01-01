@@ -82,5 +82,7 @@ protected: // All members here are protected, instead of private for testing pur
     static neighboors calculate_neighbors(field_mat field, int i, int j);
 
     static int find_dominant_species(neighboors env);
+
+    int change_species_from_neighbors(neighboors env, int selfVal);
 };
 #endif
