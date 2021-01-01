@@ -1,38 +1,47 @@
 #ifndef __THREAD_H
 #define __THREAD_H
+
 #include "../Part1/Headers.hpp"
-class Thread
-{
+
+class Thread {
 public:
-	Thread(uint thread_id) 
-	{
-		// Only places thread_id 
-	} 
-	virtual ~Thread() {} // Does nothing 
+    Thread(uint thread_id): i_thread_id(thread_id) {
+        // Only places thread_id
+    }
 
-	/** Returns true if the thread was successfully started, false if there was an error starting the thread */
-	bool start()
-	{
-	}
+    virtual ~Thread() {} // Does nothing
 
-	/** Will not return until the internal thread has exited. */
-	void join()
-	{
-	}
+    /** Returns true if the thread was successfully started, false if there was an error starting the thread */
+    bool start() {
+        if (pthread_create(&m_thread, nullptr, entry_func, this) == 0) {
+            return true;
+        }
+        return false;
+    }
 
-	/** Returns the thread_id **/
-	uint thread_id()
-	{
+    /** Will not return until the internal thread has exited. */
+    void join() {
+        pthread_join(m_thread, nullptr);
+    }
 
-	}
+    /** Returns the thread_id **/
+    uint thread_id() {
+        return m_thread;
+    }
+
 protected:
-	/** Implement this method in your subclass with the code you want your thread to run. */
-	virtual void thread_workload() = 0;
-	uint i_thread_id; // A number from 0 -> Number of threads initialized, providing a simple numbering for you to use
+    /** Implement this method in your subclass with the code you want your thread to run. */
+    virtual void thread_workload() = 0;
+
+    uint i_thread_id; // A number from 0 -> Number of threads initialized, providing a simple numbering for you to use
 
 private:
-	static void * entry_func(void * thread) { ((Thread *)thread)->thread_workload(); return NULL; }
-	pthread_t m_thread;
+    static void *entry_func(void *thread) {
+        ((Thread *) thread)->thread_workload();
+        return NULL;
+    }
+
+    pthread_t m_thread;
 };
 
 #endif

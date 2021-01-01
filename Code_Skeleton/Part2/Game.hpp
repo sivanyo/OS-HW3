@@ -69,17 +69,17 @@ protected: // All members here are protected, instead of private for testing pur
 	string filename;
 
 	// The board container
-	field_mat current;
-	field_mat next;
+	field_mat* current;
+	field_mat* next;
 
 	// Board size parameters
 	uint height;
 	uint width;
+	uint rowsPerThread;
 
-    static void _print_internal(field_mat current);
     static bool is_legal_neighbor(int i, int j, int height, int width);
 
-    static neighboors calculate_neighbors(field_mat field, int i, int j);
+    static neighboors calculate_neighbors(field_mat* field, int i, int j);
 
     static int find_dominant_species(neighboors env);
 

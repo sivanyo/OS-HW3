@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "utils.hpp"
+#include "WorkingThread.h"
 
 using std::min;
 
@@ -31,7 +32,7 @@ void Game::_init_game() {
     height = lines.size();
 
     m_thread_num = min(m_thread_num, height);
-
+    field_mat startingField;
     // go over each line in lines
     // split it into separate strings where each one is a number
     // insert the converted numbers into current and next
@@ -43,24 +44,33 @@ void Game::_init_game() {
         for (const string &num : splitLine) {
             splitNumberLine.push_back(stoi(num));
         }
-        current.push_back(splitNumberLine);
-        next.push_back(splitNumberLine);
+        startingField.push_back(splitNumberLine);
     }
+    current = new field_mat(startingField);
+    next = new field_mat(startingField);
     width = current[0].size();
+    rowsPerThread = height / m_thread_num;
+
+    uint startRow = 0;
+    uint endRow = 0;
+    for (int i = 0; i < m_thread_num; ++i) {
+        startRow = i * rowsPerThread;
+        if (i == m_thread_num - 1) {
+            // this is the last thread, so it will run from it's start point until the end of the matrix
+            endRow = height - 1;
+        } else {
+            endRow = startRow + rowsPerThread - 1;
+        }
+
+        auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width);
+        m_threadpool.push_back(t);
+
+    }
     // TODO: finish this when adding threads
     // Create threads
     // Start the threads
     // Testing of your implementation will presume all threads are started here
     //_print_internal(current);
-}
-
-void Game::_print_internal(field_mat current) {
-    for (int i = 0; i < current.size(); ++i) {
-        for (int j = 0; j < current[0].size(); ++j) {
-            std::cout << current[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
 }
 
 void Game::_step(uint curr_gen) {
@@ -73,23 +83,23 @@ void Game::_step(uint curr_gen) {
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             neighboors env = calculate_neighbors(current, i, j);
-            if (current[i][j] != 0) {
+            if ((*current)[i][j] != 0) {
                 // this cell is alive
                 if (env.numAlive <= 1 || env.numAlive > 3) {
                     // this cell needs to be killed
-                    next[i][j] = 0;
+                    (*next)[i][j] = 0;
                 } else {
                     // this cell remains the same
-                    next[i][j] = current[i][j];
+                    (*next)[i][j] = (*current)[i][j];
                 }
             } else {
                 // this cell is dead
                 if (env.numAlive == 3) {
                     // this cell will now be born
-                    next[i][j] = find_dominant_species(env);
+                    (*next)[i][j] = find_dominant_species(env);
                 } else {
                     // this cell will not be born
-                    next[i][j] = current[i][j];
+                    (*next)[i][j] = (*current)[i][j];
                 }
             }
 
@@ -99,19 +109,19 @@ void Game::_step(uint curr_gen) {
     // PHASE 2
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
-            if (next[i][j] != 0) {
+            if ((*next)[i][j] != 0) {
                 // this cell is alive and needs to be updated
                 neighboors env = calculate_neighbors(next, i, j);
-                current[i][j] = change_species_from_neighbors(env, next[i][j]);
+                (*current)[i][j] = change_species_from_neighbors(env, (*next)[i][j]);
             } else {
-                current[i][j] = 0;
+                (*current)[i][j] = 0;
             }
         }
     }
 }
 
-neighboors Game::calculate_neighbors(field_mat field, int i, int j) {
-    int height = field.size();
+neighboors Game::calculate_neighbors(field_mat *field, int i, int j) {
+    int height = (*field).size();
     int width = field[0].size();
     neighboors env;
     env.numAlive = 0;
@@ -123,9 +133,9 @@ neighboors Game::calculate_neighbors(field_mat field, int i, int j) {
             if (k == i && l == j) {
                 continue;
             }
-            if (is_legal_neighbor(k, l, height, width) && field[k][l] != 0) {
+            if (is_legal_neighbor(k, l, height, width) && (*field)[k][l] != 0) {
                 env.numAlive++;
-                env.neighborConc[field[k][l] % 7]++;
+                env.neighborConc[(*field)[k][l] % 7]++;
             }
         }
     }
@@ -177,10 +187,18 @@ bool Game::is_legal_neighbor(int i, int j, int height, int width) {
 }
 
 void Game::_destroy_game() {
-    // TODO: complete after using threads
     // Destroys board and frees all threads and resources
     // Not implemented in the Game's destructor for testing purposes.
     // Testing of your implementation will presume all threads are joined here
+    // will need to clear the boards
+
+    delete current;
+    delete next;
+    // clearing all of the threads
+//    for (int i = 0; i < m_thread_num; ++i) {
+//        m_threadpool[i]->join();
+//        delete m_threadpool[i];
+//    }
 }
 
 /*--------------------------------------------------------------------------------
@@ -202,8 +220,8 @@ inline void Game::print_board(const char *header) {
         for (uint i = 0; i < height; ++i) {
             cout << u8"║";
             for (uint j = 0; j < width; ++j) {
-                if (current[i][j] > 0)
-                    cout << colors[current[i][j] % 7] << u8"█" << RESET;
+                if ((*current)[i][j] > 0)
+                    cout << colors[(*current)[i][j] % 7] << u8"█" << RESET;
                 else
                     cout << u8"░";
             }
@@ -219,7 +237,7 @@ inline void Game::print_board(const char *header) {
 }
 
 Game::Game(game_params params) : m_gen_num(params.n_gen), m_thread_num(params.n_thread), interactive_on(params.interactive_on),
-                                 print_on(params.print_on), filename(params.filename), height(0), width(0), current(), next() {
+                                 print_on(params.print_on), filename(params.filename), height(0), width(0), rowsPerThread(0), current(), next() {
 
 }
 
@@ -234,24 +252,6 @@ const vector<float> Game::gen_hist() const {
 const vector<float> Game::tile_hist() const {
     return m_tile_hist;
 }
-
-
-/* Function sketch to use for printing the board. You will need to decide its placement and how exactly 
-	to bring in the field's parameters. 
-
-	    cout << u8"╔" << string(u8"═") * field_width << u8"╗" << endl;
-		for (uint i = 0; i < field_height ++i) {
-			cout << u8"║";
-			for (uint j = 0; j < field_width; ++j) {
-                if (field[i][j] > 0)
-                    cout << colors[field[i][j] % 7] << u8"█" << RESET;
-                else
-                    cout << u8"░";
-			}
-			cout << u8"║" << endl;
-		}
-		cout << u8"╚" << string(u8"═") * field_width << u8"╝" << endl;
-*/
 
 
 
