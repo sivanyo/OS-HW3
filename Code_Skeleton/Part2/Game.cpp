@@ -135,7 +135,7 @@ neighboors Game::calculate_neighbors(field_mat field, int i, int j) {
 // This function will return the index of the most dominant species in the
 // neighborhood
 int Game::find_dominant_species(neighboors env) {
-    int maxIndex = 0;
+    int maxIndex = -1;
     int maxVal = 0;
 
     // 1 is red
