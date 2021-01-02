@@ -19,6 +19,8 @@ private:
     field_mat *current;
     field_mat *next;
 
+    int currPhase;
+
     uint startRow;
     uint endRow;
 
@@ -41,6 +43,10 @@ public:
                   uint width);
 
     ~WorkingThread() = default;
+
+    void do_phase1();
+
+    void do_phase2();
 };
 
 
