@@ -38,6 +38,7 @@ void Game::_init_game() {
     // insert the converted numbers into current and next
     for (const string &line : lines) {
         vector<string> splitLine = utils::split(line, DEF_MAT_DELIMITER);
+        width = splitLine.size();
         // Now we need to go over the numbers in splitLine and insert to the array
         vector<int> splitNumberLine;
         splitNumberLine.reserve(splitLine.size());
@@ -48,7 +49,7 @@ void Game::_init_game() {
     }
     current = new field_mat(startingField);
     next = new field_mat(startingField);
-    width = current[0].size();
+    //width = current[0].size();
     rowsPerThread = height / m_thread_num;
 
     uint startRow = 0;

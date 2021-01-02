@@ -30,7 +30,7 @@ protected:
 
     static bool is_legal_neighbor(int i, int j, int height, int width);
 
-    static cellNeighbors calculate_neighbors(field_mat* field, int i, int j);
+    static cellNeighbors calculate_neighbors(field_mat* field, int i, int j, int height, int width);
 
     static int find_dominant_species(cellNeighbors env);
 

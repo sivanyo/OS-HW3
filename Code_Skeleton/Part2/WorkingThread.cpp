@@ -6,13 +6,11 @@
 
 WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
                              uint width) : Thread(thread_id), current(current), next(next), startRow(startRow), endRow(endRow), height(height),
-                                           width(width) {
+                                           width(width), currPhase(1) {
 
 }
 
-cellNeighbors WorkingThread::calculate_neighbors(field_mat *field, int i, int j) {
-    int height = (*field).size();
-    int width = field[0].size();
+cellNeighbors WorkingThread::calculate_neighbors(field_mat *field, int i, int j, int height, int width) {
     cellNeighbors env;
     env.numAlive = 0;
     for (int k = 0; k < 7; ++k) {
@@ -74,4 +72,58 @@ int WorkingThread::change_species_from_neighbors(cellNeighbors env, int selfVal)
 
 bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
     return i >= 0 && i < height && j >= 0 && j < width;
+}
+
+void WorkingThread::thread_workload() {
+    if (currPhase == 1) {
+        do_phase1();
+        currPhase = 2;
+    } else {
+        do_phase2();
+        currPhase = 1;
+    }
+}
+
+void WorkingThread::do_phase1() {
+    // PHASE 1
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            cellNeighbors env = calculate_neighbors(current, i, j, height, width);
+            if ((*current)[i][j] != 0) {
+                // this cell is alive
+                if (env.numAlive <= 1 || env.numAlive > 3) {
+                    // this cell needs to be killed
+                    (*next)[i][j] = 0;
+                } else {
+                    // this cell remains the same
+                    (*next)[i][j] = (*current)[i][j];
+                }
+            } else {
+                // this cell is dead
+                if (env.numAlive == 3) {
+                    // this cell will now be born
+                    (*next)[i][j] = find_dominant_species(env);
+                } else {
+                    // this cell will not be born
+                    (*next)[i][j] = (*current)[i][j];
+                }
+            }
+
+        }
+    }
+}
+
+void WorkingThread::do_phase2() {
+    // PHASE 2
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            if ((*next)[i][j] != 0) {
+                // this cell is alive and needs to be updated
+                cellNeighbors env = calculate_neighbors(next, i, j, height, width);
+                (*current)[i][j] = change_species_from_neighbors(env, (*next)[i][j]);
+            } else {
+                (*current)[i][j] = 0;
+            }
+        }
+    }
 }
