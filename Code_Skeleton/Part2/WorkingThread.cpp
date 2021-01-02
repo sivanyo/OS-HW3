@@ -86,7 +86,7 @@ void WorkingThread::thread_workload() {
 
 void WorkingThread::do_phase1() {
     // PHASE 1
-    for (int i = 0; i < height; ++i) {
+    for (int i = startRow; i <= endRow; ++i) {
         for (int j = 0; j < width; ++j) {
             cellNeighbors env = calculate_neighbors(current, i, j, height, width);
             if ((*current)[i][j] != 0) {
@@ -108,14 +108,13 @@ void WorkingThread::do_phase1() {
                     (*next)[i][j] = (*current)[i][j];
                 }
             }
-
         }
     }
 }
 
 void WorkingThread::do_phase2() {
     // PHASE 2
-    for (int i = 0; i < height; ++i) {
+    for (int i = startRow; i <= endRow; ++i) {
         for (int j = 0; j < width; ++j) {
             if ((*next)[i][j] != 0) {
                 // this cell is alive and needs to be updated

@@ -25,7 +25,6 @@ void Game::run() {
 }
 
 void Game::_init_game() {
-    std::cout << "in init game" << std::endl;
     // generating a vector with all of the lines from the file
     vector<string> lines;
     lines = utils::read_lines(filename);
@@ -65,7 +64,8 @@ void Game::_init_game() {
 
         auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width);
         m_threadpool.push_back(t);
-
+        // The exercise assumes all threads are started here
+        //t->start();
     }
     // TODO: finish this when adding threads
     // Create threads
@@ -80,44 +80,20 @@ void Game::_step(uint curr_gen) {
     // Wait for the workers to finish calculating
     // Swap pointers between current and next field
     // iterate over the current field, and update the values in the next field
-    // PHASE 1
-    for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) {
-            neighboors env = calculate_neighbors(current, i, j);
-            if ((*current)[i][j] != 0) {
-                // this cell is alive
-                if (env.numAlive <= 1 || env.numAlive > 3) {
-                    // this cell needs to be killed
-                    (*next)[i][j] = 0;
-                } else {
-                    // this cell remains the same
-                    (*next)[i][j] = (*current)[i][j];
-                }
-            } else {
-                // this cell is dead
-                if (env.numAlive == 3) {
-                    // this cell will now be born
-                    (*next)[i][j] = find_dominant_species(env);
-                } else {
-                    // this cell will not be born
-                    (*next)[i][j] = (*current)[i][j];
-                }
-            }
-
-        }
+    for (auto &it : m_threadpool) {
+        it->start();
     }
 
-    // PHASE 2
-    for (int i = 0; i < height; ++i) {
-        for (int j = 0; j < width; ++j) {
-            if ((*next)[i][j] != 0) {
-                // this cell is alive and needs to be updated
-                neighboors env = calculate_neighbors(next, i, j);
-                (*current)[i][j] = change_species_from_neighbors(env, (*next)[i][j]);
-            } else {
-                (*current)[i][j] = 0;
-            }
-        }
+    for (auto &it : m_threadpool) {
+        it->join();
+    }
+
+    for (auto &it : m_threadpool) {
+        it->start();
+    }
+
+    for (auto &it : m_threadpool) {
+        it->join();
     }
 }
 
