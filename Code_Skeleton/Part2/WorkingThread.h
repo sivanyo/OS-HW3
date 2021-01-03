@@ -16,9 +16,6 @@ struct cellNeighbors {
 
 class WorkingThread : public Thread {
 private:
-    field_mat *current;
-    field_mat *next;
-
     int currPhase;
 
     uint startRow;
@@ -26,6 +23,9 @@ private:
 
     uint height;
     uint width;
+
+    field_mat *current;
+    field_mat *next;
 
 protected:
     void thread_workload();

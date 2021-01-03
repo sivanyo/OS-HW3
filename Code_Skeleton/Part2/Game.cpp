@@ -53,7 +53,7 @@ void Game::_init_game() {
 
     uint startRow = 0;
     uint endRow = 0;
-    for (int i = 0; i < m_thread_num; ++i) {
+    for (unsigned int i = 0; i < m_thread_num; ++i) {
         startRow = i * rowsPerThread;
         if (i == m_thread_num - 1) {
             // this is the last thread, so it will run from it's start point until the end of the matrix
@@ -127,7 +127,7 @@ int Game::find_dominant_species(neighboors env) {
 
     // 1 is red
     // 0 is black (it's actually 7)
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         int tempVal = env.neighborConc[i] * i;
         if (tempVal > maxVal) {
             maxVal = tempVal;
@@ -145,7 +145,7 @@ int Game::find_dominant_species(neighboors env) {
 int Game::change_species_from_neighbors(neighboors env, int selfVal) {
     int sum = selfVal;
     int counter = 1;
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         if (env.neighborConc[i] != 0) {
             sum += env.neighborConc[i] * i;
             counter += env.neighborConc[i];

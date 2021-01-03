@@ -68,14 +68,14 @@ protected: // All members here are protected, instead of private for testing pur
 	// The path of the input file
 	string filename;
 
+    // Board size parameters
+    uint height;
+    uint width;
+    uint rowsPerThread;
+
 	// The board container
 	field_mat* current;
 	field_mat* next;
-
-	// Board size parameters
-	uint height;
-	uint width;
-	uint rowsPerThread;
 
     static bool is_legal_neighbor(int i, int j, int height, int width);
 
