@@ -61,8 +61,7 @@ void Game::_init_game() {
         } else {
             endRow = startRow + rowsPerThread - 1;
         }
-
-        auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width);
+        auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width, &m_tile_hist);
         m_threadpool.push_back(t);
         // The exercise assumes all threads are started here
         //t->start();

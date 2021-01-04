@@ -5,8 +5,9 @@
 #include "WorkingThread.h"
 
 WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
-                             uint width) : Thread(thread_id), current(current), next(next), startRow(startRow), endRow(endRow), height(height),
-                                           width(width), currPhase(1) {
+                             uint width, vector<float> *m_tile_hist) : Thread(thread_id), currPhase(1), startRow(startRow), endRow(endRow),
+                                                                       height(height), width(width), current(current), next(next),
+                                                                       m_tile_hist(m_tile_hist) {
 
 }
 
@@ -36,7 +37,7 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
     int maxIndex = -1;
     int maxVal = 0;
 
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         int tempVal = env.neighborConc[i] * i;
         if (tempVal > maxVal) {
             maxVal = tempVal;
@@ -50,13 +51,13 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
 int WorkingThread::change_species_from_neighbors(cellNeighbors env, int selfVal) {
     int sum = selfVal;
     int counter = 1;
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         if (env.neighborConc[i] != 0) {
             sum += env.neighborConc[i] * i;
             counter += env.neighborConc[i];
         }
     }
-    double res = (double)sum/counter;
+    double res = (double) sum / counter;
     return std::round(res);
 }
 
@@ -65,6 +66,7 @@ bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
 }
 
 void WorkingThread::thread_workload() {
+    auto measureStart = std::chrono::system_clock::now();
     if (currPhase == 1) {
         do_phase1();
         currPhase = 2;
@@ -72,12 +74,15 @@ void WorkingThread::thread_workload() {
         do_phase2();
         currPhase = 1;
     }
+    auto measureEnd = std::chrono::system_clock::now();
+
+    (*m_tile_hist).push_back((float) std::chrono::duration_cast<std::chrono::microseconds>(measureEnd - measureStart).count());
 }
 
 void WorkingThread::do_phase1() {
     // PHASE 1
-    for (int i = startRow; i <= endRow; ++i) {
-        for (int j = 0; j < width; ++j) {
+    for (unsigned int i = startRow; i <= endRow; ++i) {
+        for (unsigned int j = 0; j < width; ++j) {
             cellNeighbors env = calculate_neighbors(current, i, j, height, width);
             if ((*current)[i][j] != 0) {
                 // this cell is alive
@@ -104,8 +109,8 @@ void WorkingThread::do_phase1() {
 
 void WorkingThread::do_phase2() {
     // PHASE 2
-    for (int i = startRow; i <= endRow; ++i) {
-        for (int j = 0; j < width; ++j) {
+    for (unsigned int i = startRow; i <= endRow; ++i) {
+        for (unsigned int j = 0; j < width; ++j) {
             if ((*next)[i][j] != 0) {
                 // this cell is alive and needs to be updated
                 cellNeighbors env = calculate_neighbors(next, i, j, height, width);
