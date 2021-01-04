@@ -51,6 +51,11 @@ void Game::_init_game() {
     //width = current[0].size();
     rowsPerThread = height / m_thread_num;
 
+//    pthread_mutexattr_t attribute;
+//    pthread_mutexattr_init(&attribute);
+//    pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
+//    pthread_mutex_init(&lock, &attribute);
+
     uint startRow = 0;
     uint endRow = 0;
     for (unsigned int i = 0; i < m_thread_num; ++i) {
@@ -61,11 +66,13 @@ void Game::_init_game() {
         } else {
             endRow = startRow + rowsPerThread - 1;
         }
+        //auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width, &m_tile_hist, &lock);
         auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width, &m_tile_hist);
         m_threadpool.push_back(t);
         // The exercise assumes all threads are started here
         //t->start();
     }
+
     // TODO: finish this when adding threads
     // Create threads
     // Start the threads
@@ -93,6 +100,7 @@ void Game::_step(uint curr_gen) {
 
     for (auto &it : m_threadpool) {
         it->join();
+        //m_tile_hist.push_back(it->getTime());
     }
 }
 

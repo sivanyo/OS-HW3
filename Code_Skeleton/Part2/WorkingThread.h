@@ -28,6 +28,8 @@ private:
     field_mat *next;
     vector<float>* m_tile_hist;
 
+//    pthread_mutex_t* lock;
+
 protected:
     void thread_workload();
 
@@ -40,6 +42,8 @@ protected:
     int change_species_from_neighbors(cellNeighbors env, int selfVal);
 
 public:
+//    WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
+//                  uint width, vector<float>* m_tile_hist, pthread_mutex_t* lock);
     WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
                   uint width, vector<float>* m_tile_hist);
 

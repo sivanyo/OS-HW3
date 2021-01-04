@@ -11,6 +11,13 @@ WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next
 
 }
 
+//WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
+//                             uint width, vector<float> *m_tile_hist, pthread_mutex_t* lock) : Thread(thread_id), currPhase(1), startRow(startRow), endRow(endRow),
+//                                                                                              height(height), width(width), current(current), next(next),
+//                                                                                              m_tile_hist(m_tile_hist), lock(lock) {
+//
+//}
+
 cellNeighbors WorkingThread::calculate_neighbors(field_mat *field, int i, int j, int height, int width) {
     cellNeighbors env;
     env.numAlive = 0;
@@ -66,17 +73,25 @@ bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
 }
 
 void WorkingThread::thread_workload() {
-    auto measureStart = std::chrono::system_clock::now();
+
     if (currPhase == 1) {
+//        auto measureStart = std::chrono::system_clock::now();
         do_phase1();
         currPhase = 2;
+//        auto measureEnd = std::chrono::system_clock::now();
+//        timing = (float) std::chrono::duration_cast<std::chrono::microseconds>(measureEnd - measureStart).count();
     } else {
+//        auto measureStart = std::chrono::system_clock::now();
         do_phase2();
         currPhase = 1;
+//        auto measureEnd = std::chrono::system_clock::now();
+//        timing += (float) std::chrono::duration_cast<std::chrono::microseconds>(measureEnd - measureStart).count();
     }
-    auto measureEnd = std::chrono::system_clock::now();
 
-    (*m_tile_hist).push_back((float) std::chrono::duration_cast<std::chrono::microseconds>(measureEnd - measureStart).count());
+
+//    pthread_mutex_lock(lock);
+//    (*m_tile_hist).push_back((float) std::chrono::duration_cast<std::chrono::microseconds>(measureEnd - measureStart).count());
+//    pthread_mutex_unlock(lock);
 }
 
 void WorkingThread::do_phase1() {

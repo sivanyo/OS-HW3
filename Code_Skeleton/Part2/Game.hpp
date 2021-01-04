@@ -77,6 +77,8 @@ protected: // All members here are protected, instead of private for testing pur
 	field_mat* current;
 	field_mat* next;
 
+	pthread_mutex_t lock;
+
     static bool is_legal_neighbor(int i, int j, int height, int width);
 
     static neighboors calculate_neighbors(field_mat* field, int i, int j);
