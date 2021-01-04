@@ -26,7 +26,6 @@ private:
 
     field_mat *current;
     field_mat *next;
-    vector<float>* m_tile_hist;
 
 protected:
     void thread_workload();
@@ -41,7 +40,7 @@ protected:
 
 public:
     WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
-                  uint width, vector<float>* m_tile_hist);
+                  uint width);
 
     ~WorkingThread() = default;
 
