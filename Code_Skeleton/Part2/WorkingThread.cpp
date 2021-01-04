@@ -5,15 +5,15 @@
 #include "WorkingThread.h"
 
 WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
-                             uint width) : Thread(thread_id), current(current), next(next), startRow(startRow), endRow(endRow), height(height),
-                                           width(width), currPhase(1) {
+                             uint width) : Thread(thread_id), currPhase(1), startRow(startRow), endRow(endRow), height(height), width(width),
+                                           current(current), next(next) {
 
 }
 
 cellNeighbors WorkingThread::calculate_neighbors(field_mat *field, int i, int j, int height, int width) {
     cellNeighbors env;
     env.numAlive = 0;
-    for (int k = 0; k < 8; ++k) {
+    for (unsigned int k = 0; k < 8; ++k) {
         env.neighborConc.push_back(0);
     }
     for (int k = i - 1; k <= i + 1; ++k) {
@@ -36,7 +36,7 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
     int maxIndex = -1;
     int maxVal = 0;
 
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         int tempVal = env.neighborConc[i] * i;
         if (tempVal > maxVal) {
             maxVal = tempVal;
@@ -50,13 +50,13 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
 int WorkingThread::change_species_from_neighbors(cellNeighbors env, int selfVal) {
     int sum = selfVal;
     int counter = 1;
-    for (int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
         if (env.neighborConc[i] != 0) {
             sum += env.neighborConc[i] * i;
             counter += env.neighborConc[i];
         }
     }
-    double res = (double)sum/counter;
+    double res = (double) sum / counter;
     return std::round(res);
 }
 
@@ -76,8 +76,8 @@ void WorkingThread::thread_workload() {
 
 void WorkingThread::do_phase1() {
     // PHASE 1
-    for (int i = startRow; i <= endRow; ++i) {
-        for (int j = 0; j < width; ++j) {
+    for (unsigned int i = startRow; i <= endRow; ++i) {
+        for (unsigned int j = 0; j < width; ++j) {
             cellNeighbors env = calculate_neighbors(current, i, j, height, width);
             if ((*current)[i][j] != 0) {
                 // this cell is alive
@@ -104,8 +104,8 @@ void WorkingThread::do_phase1() {
 
 void WorkingThread::do_phase2() {
     // PHASE 2
-    for (int i = startRow; i <= endRow; ++i) {
-        for (int j = 0; j < width; ++j) {
+    for (unsigned int i = startRow; i <= endRow; ++i) {
+        for (unsigned int j = 0; j < width; ++j) {
             if ((*next)[i][j] != 0) {
                 // this cell is alive and needs to be updated
                 cellNeighbors env = calculate_neighbors(next, i, j, height, width);
