@@ -18,14 +18,14 @@ class WorkingThread : public Thread {
 private:
     int currPhase;
 
-    uint startRow;
-    uint endRow;
+    // Reference to job queue
+    PCQueue<TileJob>* jobQueue;
+    // Reference to the vector containing the timings of all threads
+    vector<double>* tileHist;
+    // Reference to shared lock in order to allow atomic time update and counter raise
+    pthread_mutex_t* threadLock;
+    uint* finishedJobCounter;
 
-    uint height;
-    uint width;
-
-    int_mat *current;
-    int_mat *next;
 
 protected:
     void thread_workload();
@@ -39,14 +39,13 @@ protected:
     int change_species_from_neighbors(cellNeighbors env, int selfVal);
 
 public:
-    WorkingThread(uint thread_id, int_mat *current, int_mat *next, uint startRow, uint endRow, uint height,
-                  uint width);
+    WorkingThread(uint thread_id, PCQueue<TileJob>* jobQueue, vector<double>* tileHist, pthread_mutex_t* threadLock, uint* finishedJobCounter);
 
     ~WorkingThread() = default;
 
-    void do_phase1();
+    void do_phase1(TileJob job);
 
-    void do_phase2();
+    void do_phase2(TileJob job);
 };
 
 

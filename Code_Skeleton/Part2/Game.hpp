@@ -3,6 +3,8 @@
 
 #include "../Part1/Headers.hpp"
 #include "Thread.hpp"
+#include "../Part1/PCQueue.hpp"
+#include "TileJob.hpp"
 
 /*--------------------------------------------------------------------------------
 								  Species colors
@@ -71,5 +73,13 @@ protected: // All members here are protected, instead of private for testing pur
 	// The board container
 	int_mat * current;
     int_mat* next;
+
+    // Queue containing the jobs for threads
+    PCQueue<TileJob> jobQueue;
+    // Reference to the vector containing the timings of all threads
+    vector<double> tileHist;
+    // Reference to shared lock in order to allow atomic time update and counter raise
+    pthread_mutex_t threadLock;
+    uint finishedJobCounter;
 };
 #endif

@@ -47,7 +47,7 @@ PCQueue<T>::~PCQueue() {
 template<typename T>
 T PCQueue<T>::pop() {
     while (isProducerWaiting) {
-        std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
+        //std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
         sched_yield();
     }
     availItems.down();

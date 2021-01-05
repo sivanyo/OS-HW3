@@ -24,6 +24,9 @@ void Game::run() {
     _destroy_game();
 }
 
+// Create game fields - Consider using utils:read_file, utils::split
+// Create & Start threads
+// Testing of your implementation will presume all threads are started here
 void Game::_init_game() {
     // generating a vector with all of the lines from the file
     vector<string> lines;
@@ -51,68 +54,90 @@ void Game::_init_game() {
     //width = current[0].size();
     rowsPerThread = height / m_thread_num;
 
-    uint startRow = 0;
-    uint endRow = 0;
     for (unsigned int i = 0; i < m_thread_num; ++i) {
-        startRow = i * rowsPerThread;
-        if (i == m_thread_num - 1) {
-            // this is the last thread, so it will run from it's start point until the end of the matrix
-            endRow = height - 1;
-        } else {
-            endRow = startRow + rowsPerThread - 1;
-        }
-
-        auto *t = new WorkingThread(i, current, next, startRow, endRow, height, width);
+        auto *t = new WorkingThread(i, &jobQueue, &tileHist, &threadLock, &finishedJobCounter);
         m_threadpool.push_back(t);
         // The exercise assumes all threads are started here
-        //t->start();
+        t->start();
     }
-    // Create game fields - Consider using utils:read_file, utils::split
-    // Create & Start threads
-    // Testing of your implementation will presume all threads are started here
 }
 
+// Push jobs to queue
+// Wait for the workers to finish calculating
+// Swap pointers between current and next field
+// NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
 void Game::_step(uint curr_gen) {
-    // Push jobs to queue
-    // Wait for the workers to finish calculating
-    // Swap pointers between current and next field
-    // NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
-    for (auto &it : m_threadpool) {
-        it->start();
+    // Create phase 1 jobs
+    for (unsigned int i = 0; i < m_thread_num; ++i) {
+        TileJob job{};
+        job.height = height;
+        job.width = width;
+        job.current = current;
+        job.next = next;
+        job.isLastGen = false;
+
+        job.startRow = i * rowsPerThread;
+        if (i == m_thread_num - 1) {
+            // this is the last thread, so it will run from it's start point until the end of the matrix
+            job.endRow = height - 1;
+        } else {
+            job.endRow = job.startRow + rowsPerThread - 1;
+        }
+        jobQueue.push(job);
     }
 
-    for (auto &it : m_threadpool) {
-        it->join();
+    while (finishedJobCounter != m_thread_num) {
+        // Busy wait of main game thread
+    }
+    finishedJobCounter = 0;
+
+    // Create phase 2 jobs
+    for (unsigned int i = 0; i < m_thread_num; ++i) {
+        TileJob job{};
+        job.height = height;
+        job.width = width;
+        job.current = current;
+        job.next = next;
+        job.isLastGen = false;
+
+        job.startRow = i * rowsPerThread;
+        if (i == m_thread_num - 1) {
+            // this is the last thread, so it will run from it's start point until the end of the matrix
+            job.endRow = height - 1;
+        } else {
+            job.endRow = job.startRow + rowsPerThread - 1;
+        }
+        jobQueue.push(job);
     }
 
-    for (auto &it : m_threadpool) {
-        it->start();
+    while (finishedJobCounter != m_thread_num) {
+        // Busy wait of main game thread
     }
+    finishedJobCounter = 0;
 
-    for (auto &it : m_threadpool) {
-        it->join();
+    if (curr_gen == m_gen_num - 1) {
+        // This is the last generation of the game, so we give all threads a job that will cause them to finish
+        for (unsigned int i = 0; i < m_thread_num; ++i) {
+            TileJob job{};
+            job.isLastGen = true;
+            jobQueue.push(job);
+        }
     }
 }
 
+// Destroys board and frees all threads and resources
+// Not implemented in the Game's destructor for testing purposes.
+// All threads must be joined here
 void Game::_destroy_game() {
-    // Destroys board and frees all threads and resources
-    // Not implemented in the Game's destructor for testing purposes.
-    // All threads must be joined here
-
     delete current;
     delete next;
 
-    // NEW
-//    for (uint i = 0; i < m_thread_num; ++i) {
-//        m_threadpool[i]->join();
-//    }
-
     // OLD
     // clearing all of the threads
-//    for (int i = 0; i < m_thread_num; ++i) {
-//        m_threadpool[i]->join();
-//        delete m_threadpool[i];
-//    }
+    for (unsigned int i = 0; i < m_thread_num; ++i) {
+        m_threadpool[i]->join();
+        delete m_threadpool[i];
+    }
 }
 
 /*--------------------------------------------------------------------------------
@@ -151,8 +176,12 @@ inline void Game::print_board(const char *header) {
 }
 
 Game::Game(game_params params) : m_gen_num(params.n_gen), m_thread_num(params.n_thread), interactive_on(params.interactive_on),
-                                 print_on(params.print_on), filename(params.filename), height(0), width(0), rowsPerThread(0), current(), next() {
-
+                                 print_on(params.print_on), filename(params.filename), height(0), width(0), rowsPerThread(0), current(), next(),
+                                 jobQueue(), finishedJobCounter(0) {
+    pthread_mutexattr_t attribute;
+    pthread_mutexattr_init(&attribute);
+    pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutex_init(&threadLock, &attribute);
 }
 
 uint Game::thread_num() const {

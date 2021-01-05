@@ -4,9 +4,9 @@
 
 #include "WorkingThread.h"
 
-WorkingThread::WorkingThread(uint thread_id, int_mat *current, int_mat *next, uint startRow, uint endRow, uint height,
-                             uint width) : Thread(thread_id), currPhase(1), startRow(startRow), endRow(endRow), height(height), width(width),
-                                           current(current), next(next) {
+WorkingThread::WorkingThread(uint thread_id, PCQueue<TileJob> *jobQueue, vector<double> *tileHist, pthread_mutex_t *threadLock,
+                             uint *finishedJobCounter) : Thread(thread_id), currPhase(1), jobQueue(jobQueue), tileHist(tileHist),
+                                                         threadLock(threadLock), finishedJobCounter(finishedJobCounter) {
 
 }
 
@@ -65,53 +65,69 @@ bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
 }
 
 void WorkingThread::thread_workload() {
-    if (currPhase == 1) {
-        do_phase1();
-        currPhase = 2;
-    } else {
-        do_phase2();
-        currPhase = 1;
+    bool isFinished = false;
+    while (isFinished == false) {
+        TileJob job = jobQueue->pop();
+        isFinished = job.isLastGen;
+        if (isFinished) {
+            return;
+        }
+
+        auto startMeasure = std::chrono::system_clock::now();
+        if (currPhase == 1) {
+            do_phase1(job);
+            currPhase = 2;
+        } else {
+            do_phase2(job);
+            currPhase = 1;
+        }
+        auto endMeasure = std::chrono::system_clock::now();
+        pthread_mutex_lock(threadLock);
+        (*finishedJobCounter)++;
+        tileHist->push_back((double)std::chrono::duration_cast<std::chrono::microseconds>(endMeasure - startMeasure).count());
+        pthread_mutex_unlock(threadLock);
     }
+
 }
 
-void WorkingThread::do_phase1() {
+void WorkingThread::do_phase1(TileJob job) {
     // PHASE 1
-    for (unsigned int i = startRow; i <= endRow; ++i) {
-        for (unsigned int j = 0; j < width; ++j) {
-            cellNeighbors env = calculate_neighbors(current, i, j, height, width);
-            if ((*current)[i][j] != 0) {
+    for (unsigned int i = job.startRow; i <= job.endRow; ++i) {
+        for (unsigned int j = 0; j < job.width; ++j) {
+            cellNeighbors env = calculate_neighbors(job.current, i, j, job.height, job.width);
+            if ((*job.current)[i][j] != 0) {
                 // this cell is alive
                 if (env.numAlive <= 1 || env.numAlive > 3) {
                     // this cell needs to be killed
-                    (*next)[i][j] = 0;
+                    (*job.next)[i][j] = 0;
                 } else {
                     // this cell remains the same
-                    (*next)[i][j] = (*current)[i][j];
+                    (*job.next)[i][j] = (*job.current)[i][j];
                 }
             } else {
                 // this cell is dead
                 if (env.numAlive == 3) {
                     // this cell will now be born
-                    (*next)[i][j] = find_dominant_species(env);
+                    (*job.next)[i][j] = find_dominant_species(env);
                 } else {
                     // this cell will not be born
-                    (*next)[i][j] = (*current)[i][j];
+                    (*job.next)[i][j] = (*job.current)[i][j];
                 }
             }
         }
     }
 }
 
-void WorkingThread::do_phase2() {
+void WorkingThread::do_phase2(TileJob job) {
     // PHASE 2
-    for (unsigned int i = startRow; i <= endRow; ++i) {
-        for (unsigned int j = 0; j < width; ++j) {
-            if ((*next)[i][j] != 0) {
+    for (unsigned int i = job.startRow; i <= job.endRow; ++i) {
+        for (unsigned int j = 0; j < job.width; ++j) {
+            if ((*job.next)[i][j] != 0) {
                 // this cell is alive and needs to be updated
-                cellNeighbors env = calculate_neighbors(next, i, j, height, width);
-                (*current)[i][j] = change_species_from_neighbors(env, (*next)[i][j]);
+                cellNeighbors env = calculate_neighbors(job.next, i, j, job.height, job.width);
+                (*job.current)[i][j] = change_species_from_neighbors(env, (*job.next)[i][j]);
             } else {
-                (*current)[i][j] = 0;
+                (*job.current)[i][j] = 0;
             }
         }
     }
