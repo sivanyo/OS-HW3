@@ -16,8 +16,6 @@ struct cellNeighbors {
 
 class WorkingThread : public Thread {
 private:
-    int currPhase;
-
     // Reference to job queue
     PCQueue<TileJob>* jobQueue;
     // Reference to the vector containing the timings of all threads

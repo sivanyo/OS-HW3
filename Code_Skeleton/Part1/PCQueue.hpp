@@ -46,10 +46,10 @@ PCQueue<T>::~PCQueue() {
 
 template<typename T>
 T PCQueue<T>::pop() {
-    while (isProducerWaiting) {
-        //std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
-        sched_yield();
-    }
+//    while (isProducerWaiting) {
+//        //std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
+////        sched_yield();
+//    }
     availItems.down();
     pthread_mutex_lock(&mutex);
     T first = itemQueue.front();
@@ -61,9 +61,9 @@ T PCQueue<T>::pop() {
 template<typename T>
 void PCQueue<T>::push(const T &item) {
     itemQueue.push(item);
-    isProducerWaiting = true;
+//    isProducerWaiting = true;
     availItems.up();
-    isProducerWaiting = false;
+//    isProducerWaiting = false;
 }
 
 #endif

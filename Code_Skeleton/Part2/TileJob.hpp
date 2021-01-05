@@ -16,6 +16,7 @@ struct TileJob {
     uint height;
     uint width;
 
+    uint currPhase;
     int_mat *current;
     int_mat *next;
 

@@ -68,6 +68,7 @@ void Game::_init_game() {
 // NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
 void Game::_step(uint curr_gen) {
     // Create phase 1 jobs
+//    std::cout << "Creating phase1 jobs" << std::endl;
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
         job.height = height;
@@ -75,6 +76,7 @@ void Game::_step(uint curr_gen) {
         job.current = current;
         job.next = next;
         job.isLastGen = false;
+        job.currPhase = 1;
 
         job.startRow = i * rowsPerThread;
         if (i == m_thread_num - 1) {
@@ -91,6 +93,7 @@ void Game::_step(uint curr_gen) {
     }
     finishedJobCounter = 0;
 
+//    std::cout << "Creating phase2 jobs" << std::endl;
     // Create phase 2 jobs
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
@@ -99,6 +102,7 @@ void Game::_step(uint curr_gen) {
         job.current = current;
         job.next = next;
         job.isLastGen = false;
+        job.currPhase = 2;
 
         job.startRow = i * rowsPerThread;
         if (i == m_thread_num - 1) {
@@ -139,8 +143,8 @@ void Game::_destroy_game() {
         delete m_threadpool[i];
     }
     // Pass timing back to the general purpose vector
-    for (unsigned int i = 0; i < m_thread_num; ++i) {
-        m_tile_hist.push_back(m_tile_time[i].threadTime);
+    for (auto & i : m_tile_time) {
+        m_tile_hist.push_back(i.threadTime);
     }
 }
 

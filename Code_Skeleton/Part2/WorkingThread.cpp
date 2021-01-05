@@ -5,7 +5,7 @@
 #include "WorkingThread.h"
 
 WorkingThread::WorkingThread(uint thread_id, PCQueue<TileJob> *jobQueue, vector<TileTime> *tileHist, pthread_mutex_t *threadLock,
-                             uint *finishedJobCounter) : Thread(thread_id), currPhase(1), jobQueue(jobQueue), tileHist(tileHist),
+                             uint *finishedJobCounter) : Thread(thread_id), jobQueue(jobQueue), tileHist(tileHist),
                                                          threadLock(threadLock), finishedJobCounter(finishedJobCounter) {
 
 }
@@ -74,20 +74,19 @@ void WorkingThread::thread_workload() {
         }
 
         auto startMeasure = std::chrono::system_clock::now();
-        if (currPhase == 1) {
+        if (job.currPhase == 1) {
             do_phase1(job);
-            currPhase = 2;
         } else {
             do_phase2(job);
-            currPhase = 1;
         }
         auto endMeasure = std::chrono::system_clock::now();
         TileTime tt{};
         tt.threadId = m_thread_id;
         tt.threadTime = (double) std::chrono::duration_cast<std::chrono::microseconds>(endMeasure - startMeasure).count();
         pthread_mutex_lock(threadLock);
-        (*finishedJobCounter)++;
         tileHist->push_back(tt);
+//        std::cout << "raising job counter to: " << *finishedJobCounter << "from thread: " << m_thread_id << "in phase: " << job.currPhase << std::endl;
+        (*finishedJobCounter)++;
         pthread_mutex_unlock(threadLock);
     }
 
