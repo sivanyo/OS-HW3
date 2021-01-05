@@ -4,13 +4,13 @@
 
 #include "WorkingThread.h"
 
-WorkingThread::WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
+WorkingThread::WorkingThread(uint thread_id, int_mat *current, int_mat *next, uint startRow, uint endRow, uint height,
                              uint width) : Thread(thread_id), currPhase(1), startRow(startRow), endRow(endRow), height(height), width(width),
                                            current(current), next(next) {
 
 }
 
-cellNeighbors WorkingThread::calculate_neighbors(field_mat *field, int i, int j, int height, int width) {
+cellNeighbors WorkingThread::calculate_neighbors(int_mat *field, int i, int j, int height, int width) {
     cellNeighbors env;
     env.numAlive = 0;
     for (unsigned int k = 0; k < 8; ++k) {

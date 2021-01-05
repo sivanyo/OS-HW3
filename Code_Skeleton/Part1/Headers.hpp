@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <queue>
+#include <list>
 #include <iterator>
 
 // Streams  & Filesystem:
@@ -14,15 +15,15 @@
 #include <iostream>
 #include <sstream>
 
-// Utility
+// Utility:
 #include <cmath>
 #include <cassert>
 #include <chrono>
 #include <algorithm>
-#include <numeric>  
+#include <numeric>
 #include <unistd.h>
 
-// Threads & Synchronization 
+// Threads & Synchronization:
 #include <pthread.h>
 
 /*--------------------------------------------------------------------------------
@@ -42,18 +43,17 @@ using std::cerr;
 using std::endl;
 
 typedef unsigned int uint;
-typedef vector<vector<bool>> bool_mat;
-typedef vector<vector<int>> field_mat;
+typedef vector<vector<uint>> int_mat; // Use this as your Game Field
 
 /*--------------------------------------------------------------------------------
 								  Defines & Macros
 --------------------------------------------------------------------------------*/
 #define PRINT_BOARD true // Boolean flag - Responsible for controling whether the board is printed or not
 #define GEN_SLEEP_USEC 300000 // Default : 300000. The approximate time the board is displayed each generation in micro-seconds
-#define DEF_MAT_DELIMITER ' ' // The seperator betweens 0s and 1s in your matrix input file 
-#define DEF_RESULTS_FILE_NAME "results.csv" // The filename of the results 
+#define DEF_MAT_DELIMITER ' ' // The seperator betweens 0s and 1s in your matrix input file
+#define DEF_RESULTS_FILE_NAME "results.csv" // The filename of the results
 
-// Macros
+// Macros - For your comfort
 #define DEBUG 1
 #define DEBUG_MES(mes) if(DEBUG) cout << mes << endl;
 #define user_error(mes,exp) if(!exp){cerr << "Fatal: " <<  mes << endl; exit(1);}

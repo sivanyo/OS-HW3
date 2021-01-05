@@ -17,8 +17,8 @@ void Game::run() {
         auto gen_start = std::chrono::system_clock::now();
         _step(i); // Iterates a single generation
         auto gen_end = std::chrono::system_clock::now();
-        m_gen_hist.push_back((float) std::chrono::duration_cast<std::chrono::microseconds>(gen_end - gen_start).count());
-        print_board(NULL);
+        m_gen_hist.push_back((double) std::chrono::duration_cast<std::chrono::microseconds>(gen_end - gen_start).count());
+        print_board(nullptr);
     } // generation loop
     print_board("Final Board");
     _destroy_game();
@@ -31,7 +31,7 @@ void Game::_init_game() {
     height = lines.size();
 
     m_thread_num = min(m_thread_num, height);
-    field_mat startingField;
+    int_mat startingField;
     // go over each line in lines
     // split it into separate strings where each one is a number
     // insert the converted numbers into current and next
@@ -39,15 +39,15 @@ void Game::_init_game() {
         vector<string> splitLine = utils::split(line, DEF_MAT_DELIMITER);
         width = splitLine.size();
         // Now we need to go over the numbers in splitLine and insert to the array
-        vector<int> splitNumberLine;
+        vector<uint> splitNumberLine;
         splitNumberLine.reserve(splitLine.size());
         for (const string &num : splitLine) {
             splitNumberLine.push_back(stoi(num));
         }
         startingField.push_back(splitNumberLine);
     }
-    current = new field_mat(startingField);
-    next = new field_mat(startingField);
+    current = new int_mat(startingField);
+    next = new int_mat(startingField);
     //width = current[0].size();
     rowsPerThread = height / m_thread_num;
 
@@ -67,19 +67,16 @@ void Game::_init_game() {
         // The exercise assumes all threads are started here
         //t->start();
     }
-    // TODO: finish this when adding threads
-    // Create threads
-    // Start the threads
+    // Create game fields - Consider using utils:read_file, utils::split
+    // Create & Start threads
     // Testing of your implementation will presume all threads are started here
-    //_print_internal(current);
 }
 
 void Game::_step(uint curr_gen) {
-    // TODO: complete after using threads
     // Push jobs to queue
     // Wait for the workers to finish calculating
     // Swap pointers between current and next field
-    // iterate over the current field, and update the values in the next field
+    // NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
     for (auto &it : m_threadpool) {
         it->start();
     }
@@ -95,82 +92,22 @@ void Game::_step(uint curr_gen) {
     for (auto &it : m_threadpool) {
         it->join();
     }
-}
-
-neighboors Game::calculate_neighbors(field_mat *field, int i, int j) {
-    int height = (*field).size();
-    int width = field[0].size();
-    neighboors env;
-    env.numAlive = 0;
-    for (int k = 0; k < 7; ++k) {
-        env.neighborConc.push_back(0);
-    }
-    for (int k = i - 1; k <= i + 1; ++k) {
-        for (int l = j - 1; l <= j + 1; ++l) {
-            if (k == i && l == j) {
-                continue;
-            }
-            if (is_legal_neighbor(k, l, height, width) && (*field)[k][l] != 0) {
-                env.numAlive++;
-                env.neighborConc[(*field)[k][l] % 7]++;
-            }
-        }
-    }
-    return env;
-}
-
-// This function will return the index of the most dominant species in the
-// neighborhood
-int Game::find_dominant_species(neighboors env) {
-    int maxIndex = -1;
-    int maxVal = 0;
-
-    // 1 is red
-    // 0 is black (it's actually 7)
-    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
-        int tempVal = env.neighborConc[i] * i;
-        if (tempVal > maxVal) {
-            maxVal = tempVal;
-            maxIndex = i;
-        }
-    }
-
-    int lastVal = env.neighborConc[0] * 7;
-    if (lastVal > maxVal) {
-        maxIndex = 7;
-    }
-    return maxIndex;
-}
-
-int Game::change_species_from_neighbors(neighboors env, int selfVal) {
-    int sum = selfVal;
-    int counter = 1;
-    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
-        if (env.neighborConc[i] != 0) {
-            sum += env.neighborConc[i] * i;
-            counter += env.neighborConc[i];
-        }
-    }
-
-    if (env.neighborConc[0] != 0) {
-        sum += env.neighborConc[0] * 7;
-        counter += env.neighborConc[0];
-    }
-    return std::round(sum / counter);
-}
-
-bool Game::is_legal_neighbor(int i, int j, int height, int width) {
-    return i >= 0 && i < height && j >= 0 && j < width;
 }
 
 void Game::_destroy_game() {
     // Destroys board and frees all threads and resources
     // Not implemented in the Game's destructor for testing purposes.
-    // Testing of your implementation will presume all threads are joined here
-    // will need to clear the boards
+    // All threads must be joined here
 
     delete current;
     delete next;
+
+    // NEW
+//    for (uint i = 0; i < m_thread_num; ++i) {
+//        m_threadpool[i]->join();
+//    }
+
+    // OLD
     // clearing all of the threads
 //    for (int i = 0; i < m_thread_num; ++i) {
 //        m_threadpool[i]->join();
@@ -222,11 +159,11 @@ uint Game::thread_num() const {
     return m_thread_num;
 }
 
-const vector<float> Game::gen_hist() const {
+const vector<double> Game::gen_hist() const {
     return m_gen_hist;
 }
 
-const vector<float> Game::tile_hist() const {
+const vector<double> Game::tile_hist() const {
     return m_tile_hist;
 }
 

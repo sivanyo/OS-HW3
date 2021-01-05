@@ -24,22 +24,22 @@ private:
     uint height;
     uint width;
 
-    field_mat *current;
-    field_mat *next;
+    int_mat *current;
+    int_mat *next;
 
 protected:
     void thread_workload();
 
     static bool is_legal_neighbor(int i, int j, int height, int width);
 
-    static cellNeighbors calculate_neighbors(field_mat* field, int i, int j, int height, int width);
+    static cellNeighbors calculate_neighbors(int_mat* field, int i, int j, int height, int width);
 
     static int find_dominant_species(cellNeighbors env);
 
     int change_species_from_neighbors(cellNeighbors env, int selfVal);
 
 public:
-    WorkingThread(uint thread_id, field_mat *current, field_mat *next, uint startRow, uint endRow, uint height,
+    WorkingThread(uint thread_id, int_mat *current, int_mat *next, uint startRow, uint endRow, uint height,
                   uint width);
 
     ~WorkingThread() = default;

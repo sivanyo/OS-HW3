@@ -28,11 +28,6 @@ struct game_params {
 	bool interactive_on; 
 	bool print_on; 
 };
-
-struct neighboors {
-    int numAlive;
-    vector<int> neighborConc;
-};
 /*--------------------------------------------------------------------------------
 									Class Declaration
 --------------------------------------------------------------------------------*/
@@ -42,8 +37,8 @@ public:
 	explicit Game(game_params params);
 	~Game() = default;
 	void run(); // Runs the game
-	const vector<float> gen_hist() const; // Returns the generation timing histogram  
-	const vector<float> tile_hist() const; // Returns the tile timing histogram
+	const vector<double> gen_hist() const; // Returns the generation timing histogram
+	const vector<double> tile_hist() const; // Returns the tile timing histogram
 	uint thread_num() const; //Returns the effective number of running threads = min(thread_num, field_height)
 
 
@@ -57,9 +52,9 @@ protected: // All members here are protected, instead of private for testing pur
 
 	uint m_gen_num; 			 // The number of generations to run
 	uint m_thread_num; 			 // Effective number of threads = min(thread_num, field_height)
-	vector<float> m_tile_hist; 	 // Shared Timing history for tiles: First m_gen_num cells are the calculation durations for tiles in generation 1 and so on.
-							   	 // Note: In your implementation, all m_thread_num threads must write to this structure.
-	vector<float> m_gen_hist;  	 // Timing history for generations: x=m_gen_hist[t] iff generation t was calculated in x microseconds
+	vector<double> m_tile_hist; 	 // Shared Timing history for tiles: First (2 * m_gen_num) cells are the calculation durations for tiles in generation 1 and so on.
+                                     // Note: In your implementation, all m_thread_num threads must write to this structure.
+	vector<double> m_gen_hist;  	 // Timing history for generations: x=m_gen_hist[t] iff generation t was calculated in x microseconds
 	vector<Thread*> m_threadpool; // A storage container for your threads. This acts as the threadpool.
 
 	bool interactive_on; // Controls interactive mode - that means, prints the board as an animation instead of a simple dump to STDOUT
@@ -74,15 +69,7 @@ protected: // All members here are protected, instead of private for testing pur
     uint rowsPerThread;
 
 	// The board container
-	field_mat* current;
-	field_mat* next;
-
-    static bool is_legal_neighbor(int i, int j, int height, int width);
-
-    static neighboors calculate_neighbors(field_mat* field, int i, int j);
-
-    static int find_dominant_species(neighboors env);
-
-    int change_species_from_neighbors(neighboors env, int selfVal);
+	int_mat * current;
+    int_mat* next;
 };
 #endif
