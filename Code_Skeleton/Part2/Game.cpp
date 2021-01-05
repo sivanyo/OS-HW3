@@ -55,7 +55,7 @@ void Game::_init_game() {
     rowsPerThread = height / m_thread_num;
 
     for (unsigned int i = 0; i < m_thread_num; ++i) {
-        auto *t = new WorkingThread(i, &jobQueue, &tileHist, &threadLock, &finishedJobCounter);
+        auto *t = new WorkingThread(i, &jobQueue, &m_tile_time, &threadLock, &finishedJobCounter);
         m_threadpool.push_back(t);
         // The exercise assumes all threads are started here
         t->start();
@@ -137,6 +137,10 @@ void Game::_destroy_game() {
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         m_threadpool[i]->join();
         delete m_threadpool[i];
+    }
+    // Pass timing back to the general purpose vector
+    for (unsigned int i = 0; i < m_thread_num; ++i) {
+        m_tile_hist.push_back(m_tile_time[i].threadTime);
     }
 }
 

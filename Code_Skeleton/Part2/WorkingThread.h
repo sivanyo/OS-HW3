@@ -21,7 +21,7 @@ private:
     // Reference to job queue
     PCQueue<TileJob>* jobQueue;
     // Reference to the vector containing the timings of all threads
-    vector<double>* tileHist;
+    vector<TileTime>* tileHist;
     // Reference to shared lock in order to allow atomic time update and counter raise
     pthread_mutex_t* threadLock;
     uint* finishedJobCounter;
@@ -39,7 +39,7 @@ protected:
     int change_species_from_neighbors(cellNeighbors env, int selfVal);
 
 public:
-    WorkingThread(uint thread_id, PCQueue<TileJob>* jobQueue, vector<double>* tileHist, pthread_mutex_t* threadLock, uint* finishedJobCounter);
+    WorkingThread(uint thread_id, PCQueue<TileJob>* jobQueue, vector<TileTime>* tileHist, pthread_mutex_t* threadLock, uint* finishedJobCounter);
 
     ~WorkingThread() = default;
 

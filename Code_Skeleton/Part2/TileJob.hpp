@@ -4,6 +4,11 @@
 
 #include "../Part1/Headers.hpp"
 
+struct TileTime {
+    double threadTime;
+    uint threadId;
+};
+
 struct TileJob {
     uint startRow;
     uint endRow;
