@@ -68,7 +68,6 @@ void Game::_init_game() {
 // NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
 void Game::_step(uint curr_gen) {
     // Create phase 1 jobs
-    std::cout << "Creating phase1 jobs" << std::endl;
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
         job.height = height;
@@ -93,7 +92,6 @@ void Game::_step(uint curr_gen) {
     }
     finishedJobCounter = 0;
 
-    std::cout << "Creating phase2 jobs" << std::endl;
     // Create phase 2 jobs
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
@@ -136,7 +134,6 @@ void Game::_destroy_game() {
     delete current;
     delete next;
 
-    // OLD
     // clearing all of the threads
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         m_threadpool[i]->join();

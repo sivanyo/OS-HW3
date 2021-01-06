@@ -43,11 +43,6 @@ PCQueue<T>::~PCQueue() {
 
 template<typename T>
 T PCQueue<T>::pop() {
-    // TODO: maybe revert this
-//    while (numOfProducersWaiting) {
-//        //std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
-////        sched_yield();
-//    }
     availItems.down();
     while (numOfProducersWaiting > 0) {
         sched_yield();
@@ -59,8 +54,6 @@ T PCQueue<T>::pop() {
     return first;
 }
 
-// while num of waiting for push is larger than 0, down is before while, rest is same
-
 template<typename T>
 void PCQueue<T>::push(const T &item) {
     numOfProducersWaiting++;
@@ -69,11 +62,6 @@ void PCQueue<T>::push(const T &item) {
     itemQueue.push(item);
     pthread_mutex_unlock(&mutex);
     availItems.up();
-//    numOfProducersWaiting = false;
 }
-
-// count num of waiting for push, and raise when entering push
-// lock
-// decrease num of waiting, perform actual push, unlock the lock, then call up
 
 #endif
