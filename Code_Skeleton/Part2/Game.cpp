@@ -68,7 +68,7 @@ void Game::_init_game() {
 // NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade
 void Game::_step(uint curr_gen) {
     // Create phase 1 jobs
-//    std::cout << "Creating phase1 jobs" << std::endl;
+    std::cout << "Creating phase1 jobs" << std::endl;
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
         job.height = height;
@@ -93,7 +93,7 @@ void Game::_step(uint curr_gen) {
     }
     finishedJobCounter = 0;
 
-//    std::cout << "Creating phase2 jobs" << std::endl;
+    std::cout << "Creating phase2 jobs" << std::endl;
     // Create phase 2 jobs
     for (unsigned int i = 0; i < m_thread_num; ++i) {
         TileJob job{};
@@ -186,10 +186,7 @@ inline void Game::print_board(const char *header) {
 Game::Game(game_params params) : m_gen_num(params.n_gen), m_thread_num(params.n_thread), interactive_on(params.interactive_on),
                                  print_on(params.print_on), filename(params.filename), height(0), width(0), rowsPerThread(0), current(), next(),
                                  jobQueue(), finishedJobCounter(0) {
-    pthread_mutexattr_t attribute;
-    pthread_mutexattr_init(&attribute);
-    pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
-    pthread_mutex_init(&threadLock, &attribute);
+    pthread_mutex_init(&threadLock, NULL);
 }
 
 uint Game::thread_num() const {

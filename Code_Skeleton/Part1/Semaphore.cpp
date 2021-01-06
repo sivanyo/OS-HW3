@@ -10,7 +10,7 @@ Semaphore::Semaphore() : counter(0) {
     pthread_mutexattr_init(&attribute);
     pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &attribute);
-    pthread_cond_init(&cond, nullptr);
+    pthread_cond_init(&cond, NULL);
 }
 
 // Constructs a new semaphore with a counter of val
@@ -19,7 +19,7 @@ Semaphore::Semaphore(unsigned val) : counter(val) {
     pthread_mutexattr_init(&attribute);
     pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
     pthread_mutex_init(&mutex, &attribute);
-    pthread_cond_init(&cond, nullptr);
+    pthread_cond_init(&cond, NULL);
 }
 
 // Mark: 1 Thread has left the critical section

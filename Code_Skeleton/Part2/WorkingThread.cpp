@@ -89,7 +89,6 @@ void WorkingThread::thread_workload() {
         (*finishedJobCounter)++;
         pthread_mutex_unlock(threadLock);
     }
-
 }
 
 void WorkingThread::do_phase1(TileJob job) {

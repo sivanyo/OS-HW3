@@ -28,15 +28,12 @@ private:
     pthread_mutex_t mutex;
     queue<T> itemQueue;
     Semaphore availItems;
-    bool isProducerWaiting = false;
+    int numOfProducersWaiting = 0;
 };
 
 template<typename T>
 PCQueue<T>::PCQueue(): itemQueue(), availItems(0) {
-    pthread_mutexattr_t attribute;
-    pthread_mutexattr_init(&attribute);
-    pthread_mutexattr_settype(&attribute, PTHREAD_MUTEX_ERRORCHECK);
-    pthread_mutex_init(&mutex, &attribute);
+    pthread_mutex_init(&mutex, NULL);
 }
 
 template<typename T>
@@ -47,11 +44,14 @@ PCQueue<T>::~PCQueue() {
 template<typename T>
 T PCQueue<T>::pop() {
     // TODO: maybe revert this
-//    while (isProducerWaiting) {
+//    while (numOfProducersWaiting) {
 //        //std::cout << "there are producers waiting to write, so I am giving up on CPU" << std::endl;
 ////        sched_yield();
 //    }
     availItems.down();
+    while (numOfProducersWaiting > 0) {
+        sched_yield();
+    }
     pthread_mutex_lock(&mutex);
     T first = itemQueue.front();
     itemQueue.pop();
@@ -59,12 +59,21 @@ T PCQueue<T>::pop() {
     return first;
 }
 
+// while num of waiting for push is larger than 0, down is before while, rest is same
+
 template<typename T>
 void PCQueue<T>::push(const T &item) {
+    numOfProducersWaiting++;
+    pthread_mutex_lock(&mutex);
+    numOfProducersWaiting--;
     itemQueue.push(item);
-//    isProducerWaiting = true;
+    pthread_mutex_unlock(&mutex);
     availItems.up();
-//    isProducerWaiting = false;
+//    numOfProducersWaiting = false;
 }
+
+// count num of waiting for push, and raise when entering push
+// lock
+// decrease num of waiting, perform actual push, unlock the lock, then call up
 
 #endif
