@@ -43,7 +43,6 @@ void Game::_init_game() {
         width = splitLine.size();
         // Now we need to go over the numbers in splitLine and insert to the array
         vector<uint> splitNumberLine;
-        splitNumberLine.reserve(splitLine.size());
         for (const string &num : splitLine) {
             splitNumberLine.push_back(stoi(num));
         }

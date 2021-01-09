@@ -66,7 +66,7 @@ bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
 
 void WorkingThread::thread_workload() {
     bool isFinished = false;
-    while (isFinished == false) {
+    while (true) {
         TileJob job = jobQueue->pop();
         isFinished = job.isLastGen;
         if (isFinished) {
