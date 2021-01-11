@@ -2,7 +2,7 @@
 // Created by 1912m on 05/01/2021.
 //
 
-#include "../Part1/Headers.hpp"
+#include "Headers.hpp"
 
 struct TileTime {
     double threadTime;

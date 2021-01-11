@@ -9,9 +9,11 @@
 #include "Thread.hpp"
 #include "Game.hpp"
 
+#define N 8
+
 struct cellNeighbors {
-    int numAlive;
-    vector<int> neighborConc;
+    int numAlive = 0;
+    int neighborConc[N] = {0,0,0,0,0,0,0,0};
 };
 
 class WorkingThread : public Thread {
@@ -28,9 +30,7 @@ private:
 protected:
     void thread_workload();
 
-    static bool is_legal_neighbor(int i, int j, int height, int width);
-
-    static cellNeighbors calculate_neighbors(int_mat* field, int i, int j, int height, int width);
+    static cellNeighbors calculate_neighbors(int_mat* field, int i, int j, int height, int end, int left, int width);
 
     static int find_dominant_species(cellNeighbors env);
 
@@ -44,6 +44,14 @@ public:
     void do_phase1(TileJob job);
 
     void do_phase2(TileJob job);
+
+    int generate_start_index(int i);
+
+    int generate_end_index(int i, int height);
+
+    int generate_left_index(int j);
+
+    int generate_right_index(int j, int width);
 };
 
 

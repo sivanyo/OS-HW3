@@ -10,18 +10,15 @@ WorkingThread::WorkingThread(uint thread_id, PCQueue<TileJob> *jobQueue, vector<
 
 }
 
-cellNeighbors WorkingThread::calculate_neighbors(int_mat *field, int i, int j, int height, int width) {
+cellNeighbors WorkingThread::calculate_neighbors(int_mat *field, int i, int j, int start, int end, int left, int right) {
     cellNeighbors env;
     env.numAlive = 0;
-    for (unsigned int k = 0; k < 8; ++k) {
-        env.neighborConc.push_back(0);
-    }
-    for (int k = i - 1; k <= i + 1; ++k) {
-        for (int l = j - 1; l <= j + 1; ++l) {
+    for (int k = start; k <= end; ++k) {
+        for (int l = left; l <= right; ++l) {
             if (k == i && l == j) {
                 continue;
             }
-            if (is_legal_neighbor(k, l, height, width) && (*field)[k][l] != 0) {
+            if ((*field)[k][l] != 0) {
                 env.numAlive++;
                 env.neighborConc[(*field)[k][l]]++;
             }
@@ -36,7 +33,7 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
     int maxIndex = -1;
     int maxVal = 0;
 
-    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < 8; ++i) {
         int tempVal = env.neighborConc[i] * i;
         if (tempVal > maxVal) {
             maxVal = tempVal;
@@ -50,7 +47,7 @@ int WorkingThread::find_dominant_species(cellNeighbors env) {
 int WorkingThread::change_species_from_neighbors(cellNeighbors env, int selfVal) {
     int sum = selfVal;
     int counter = 1;
-    for (unsigned int i = 1; i < env.neighborConc.size(); ++i) {
+    for (unsigned int i = 1; i < 8; ++i) {
         if (env.neighborConc[i] != 0) {
             sum += env.neighborConc[i] * i;
             counter += env.neighborConc[i];
@@ -58,10 +55,6 @@ int WorkingThread::change_species_from_neighbors(cellNeighbors env, int selfVal)
     }
     double res = (double) sum / counter;
     return std::round(res);
-}
-
-bool WorkingThread::is_legal_neighbor(int i, int j, int height, int width) {
-    return i >= 0 && i < height && j >= 0 && j < width;
 }
 
 void WorkingThread::thread_workload() {
@@ -85,7 +78,6 @@ void WorkingThread::thread_workload() {
         tt.threadTime = (double) std::chrono::duration_cast<std::chrono::microseconds>(endMeasure - startMeasure).count();
         pthread_mutex_lock(threadLock);
         tileHist->push_back(tt);
-//        std::cout << "raising job counter to: " << *finishedJobCounter << "from thread: " << m_thread_id << "in phase: " << job.currPhase << std::endl;
         (*finishedJobCounter)++;
         pthread_mutex_unlock(threadLock);
     }
@@ -93,9 +85,13 @@ void WorkingThread::thread_workload() {
 
 void WorkingThread::do_phase1(TileJob job) {
     // PHASE 1
-    for (unsigned int i = job.startRow; i <= job.endRow; ++i) {
-        for (unsigned int j = 0; j < job.width; ++j) {
-            cellNeighbors env = calculate_neighbors(job.current, i, j, job.height, job.width);
+    for (int i = (int) job.startRow; i <= (int) job.endRow; ++i) {
+        int start = generate_start_index(i);
+        int end = generate_end_index(i, job.height);
+        for (int j = 0; j < (int) job.width; ++j) {
+            int left = generate_left_index(j);
+            int right = generate_right_index(j, job.width);
+            cellNeighbors env = calculate_neighbors(job.current, i, j, start, end, left, right);
             if ((*job.current)[i][j] != 0) {
                 // this cell is alive
                 if (env.numAlive <= 1 || env.numAlive > 3) {
@@ -121,15 +117,51 @@ void WorkingThread::do_phase1(TileJob job) {
 
 void WorkingThread::do_phase2(TileJob job) {
     // PHASE 2
-    for (unsigned int i = job.startRow; i <= job.endRow; ++i) {
-        for (unsigned int j = 0; j < job.width; ++j) {
+    for (int i = job.startRow; i <= (int) job.endRow; ++i) {
+        int start = generate_start_index(i);
+        int end = generate_end_index(i, job.height);
+        for (int j = 0; j < (int) job.width; ++j) {
+            int left = generate_left_index(j);
+            int right = generate_right_index(j, job.width);
             if ((*job.next)[i][j] != 0) {
                 // this cell is alive and needs to be updated
-                cellNeighbors env = calculate_neighbors(job.next, i, j, job.height, job.width);
+                cellNeighbors env = calculate_neighbors(job.next, i, j, start, end, left, right);
                 (*job.current)[i][j] = change_species_from_neighbors(env, (*job.next)[i][j]);
             } else {
                 (*job.current)[i][j] = 0;
             }
         }
+    }
+}
+
+int WorkingThread::generate_start_index(int i) {
+    if (0 > i - 1) {
+        return 0;
+    } else {
+        return i - 1;
+    }
+}
+
+int WorkingThread::generate_end_index(int i, int height) {
+    if (i + 1 < height) {
+        return i + 1;
+    } else {
+        return height - 1;
+    }
+}
+
+int WorkingThread::generate_left_index(int j) {
+    if (0 > j - 1) {
+        return 0;
+    } else {
+        return j - 1;
+    }
+}
+
+int WorkingThread::generate_right_index(int j, int width) {
+    if (width - 1 < j + 1) {
+        return width - 1;
+    } else {
+        return j + 1;
     }
 }
